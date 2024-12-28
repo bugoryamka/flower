@@ -64,9 +64,17 @@ function setup() {
   bgColorTop = morningTop; // Start with morning gradient
   bgColorBottom = morningBottom;
 
-  // Play the sound
-  if (sound) {
-    sound.play();
+  // Try to play the sound immediately
+  playSound();
+}
+
+function playSound() {
+  if (sound && !sound.isPlaying()) {
+    sound.loop(); // Loop the sound
+    // If the sound doesn't play due to browser autoplay policy, log a message
+    sound.onended(() => {
+      console.log("Sound failed to play due to browser autoplay policy.");
+    });
   }
 }
 
