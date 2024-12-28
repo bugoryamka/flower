@@ -22,16 +22,15 @@ let bgColorTop, bgColorBottom;
 // Gradient colors for different times of the day
 let morningTop, morningBottom, afternoonTop, afternoonBottom, eveningTop, eveningBottom, nightTop, nightBottom;
 
-// Sound variable
-let sound;
-
-function preload() {
-  // Load the MP3 file
-  sound = loadSound('9.mp3');
-}
+// Audio element
+let audio;
+let startButton;
 
 function setup() {
-  createCanvas(1400, 1000); // Increase canvas size for more space
+  // Create a responsive canvas
+  let canvas = createCanvas(windowWidth, windowHeight);
+  canvas.style('max-width', '100%');
+  canvas.style('height', 'auto');
 
   // Initialize gradient colors
   morningTop = color(255, 223, 186); // Light orange
@@ -56,7 +55,7 @@ function setup() {
 
   // Create a slider
   distanceSlider = createSlider(50, 200, 50);
-  distanceSlider.position(20, height + 20);
+  distanceSlider.position(20, height - 50); // Position slider at the bottom
 
   // Initialize sun and background variables
   sunColor = color('#FFEB3B'); // Yellow color for the sun
@@ -64,18 +63,18 @@ function setup() {
   bgColorTop = morningTop; // Start with morning gradient
   bgColorBottom = morningBottom;
 
-  // Try to play the sound immediately
-  playSound();
-}
+  // Get the audio element and start button
+  audio = document.getElementById('audio');
+  startButton = document.getElementById('startButton');
 
-function playSound() {
-  if (sound && !sound.isPlaying()) {
-    sound.loop(); // Loop the sound
-    // If the sound doesn't play due to browser autoplay policy, log a message
-    sound.onended(() => {
-      console.log("Sound failed to play due to browser autoplay policy.");
-    });
-  }
+  // Start the sketch when the button is clicked
+  startButton.addEventListener('click', () => {
+    startButton.style.display = 'none'; // Hide the button
+    audio.play(); // Play the audio
+    loop(); // Start the p5.js draw loop
+  });
+
+  noLoop(); // Pause the draw loop until the button is clicked
 }
 
 function draw() {
@@ -136,9 +135,16 @@ function setGradient(x, y, w, h, c1, c2) {
 }
 
 function updateSun() {
-  // Calculate the force to move the sun toward the mouse
-  let mousePos = createVector(mouseX, mouseY);
-  let force = p5.Vector.sub(mousePos, sunPos).mult(stiffness);
+  // Calculate the force to move the sun toward the mouse or touch
+  let targetPos;
+  if (touches.length > 0) {
+    // Use touch position on mobile
+    targetPos = createVector(touches[0].x, touches[0].y);
+  } else {
+    // Use mouse position on desktop
+    targetPos = createVector(mouseX, mouseY);
+  }
+  let force = p5.Vector.sub(targetPos, sunPos).mult(stiffness);
   // Apply the force to the sun's acceleration
   sunAcc.add(force);
   // Update the sun's velocity and position
@@ -278,4 +284,9 @@ function drawStem() {
     stroke(colors[i % colors.length]);
     line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
   }
+}
+
+function windowResized() {
+  // Resize the canvas when the window is resized
+  resizeCanvas(windowWidth, windowHeight);
 }
